@@ -1,17 +1,15 @@
-# Este contenido va dentro de tu repositorio de GitHub
 server:
-  port: 8081 # El puerto donde correrá el micro de seguridad
+  port: 8081
 
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/ # Registro en el Discovery Server
+      defaultZone: http://localhost:8761/eureka/
     register-with-eureka: true
     fetch-registry: true
   instance:
     prefer-ip-address: true
 
-# Aquí guardas lo que configuramos en los pasos anteriores de seguridad
 jwt:
   secret: '${JWT_SECRET:clave_secreta_para_fittracker_de_al_menos_32_caracteres}'
   expiration: 3600
