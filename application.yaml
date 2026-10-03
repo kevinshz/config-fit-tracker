@@ -1,0 +1,16 @@
+# Configuracion global: aplica a TODOS los servicios que consumen este Config Server
+# (auth, user, workout, routine, calculator, api-gateway).
+# La resolucion de placeholders ${...} es client-side: cada servicio la resuelve
+# con sus propias variables de entorno.
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://localhost:8761/eureka/}
+  instance:
+    prefer-ip-address: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

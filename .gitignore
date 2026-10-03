@@ -1,0 +1,10 @@
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# SO / editor
+.DS_Store
+Thumbs.db
+*.swp
+*.swo

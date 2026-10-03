@@ -1,27 +1,98 @@
+# Configuracion del api-gateway (puerto, CORS, rutas y Swagger agregado).
+# jwt.secret debe coincidir exactamente con el de auth-service (misma derivacion: bytes UTF-8).
 server:
   port: 8222
 
-eureka:
-  client:
-    service-url:
-      defaultZone: http://discovery-server:8761/eureka/
-    register-with-eureka: true
-    fetch-registry: true
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION:86400000}
 
-  instance:
-    prefer-ip-address: true
+spring:
+  cloud:
+    gateway:
+      # CORS para el frontend (browser en :4200 contra API en :8222)
+      globalcors:
+        add-to-simple-url-handler-mapping: true
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedMethods: "*"
+            allowedHeaders: "*"
+            maxAge: 3600
+      routes:
+        - id: auth-service
+          uri: lb://AUTH-SERVICE
+          predicates:
+            - Path=/auth/**
+        - id: user-service
+          uri: lb://USER-SERVICE
+          predicates:
+            - Path=/api/v1/users/**
+        - id: workout-service
+          uri: lb://WORKOUT-SERVICE
+          predicates:
+            - Path=/api/v1/workouts/**
+        - id: routine-service
+          uri: lb://ROUTINE-SERVICE
+          predicates:
+            - Path=/api/v1/exercises/**
+        - id: calculator-service
+          uri: lb://CALCULATOR-SERVICE
+          predicates:
+            - Path=/api/v1/calculator/**
+
+        # Agregacion de OpenAPI: cada servicio expone su doc y el gateway la expone en un unico Swagger UI
+        - id: auth-openapi
+          uri: lb://AUTH-SERVICE
+          predicates:
+            - Path=/api-docs/auth/**
+          filters:
+            - RewritePath=/api-docs/auth/(?<segment>.*), /$\{segment}
+        - id: user-openapi
+          uri: lb://USER-SERVICE
+          predicates:
+            - Path=/api-docs/user/**
+          filters:
+            - RewritePath=/api-docs/user/(?<segment>.*), /$\{segment}
+        - id: workout-openapi
+          uri: lb://WORKOUT-SERVICE
+          predicates:
+            - Path=/api-docs/workout/**
+          filters:
+            - RewritePath=/api-docs/workout/(?<segment>.*), /$\{segment}
+        - id: routine-openapi
+          uri: lb://ROUTINE-SERVICE
+          predicates:
+            - Path=/api-docs/routine/**
+          filters:
+            - RewritePath=/api-docs/routine/(?<segment>.*), /$\{segment}
+        - id: calculator-openapi
+          uri: lb://CALCULATOR-SERVICE
+          predicates:
+            - Path=/api-docs/calculator/**
+          filters:
+            - RewritePath=/api-docs/calculator/(?<segment>.*), /$\{segment}
+
+# Swagger UI agregado: http://localhost:8222/swagger-ui.html
+springdoc:
+  swagger-ui:
+    urls:
+      - name: auth
+        url: /api-docs/auth/v3/api-docs
+      - name: user
+        url: /api-docs/user/v3/api-docs
+      - name: workout
+        url: /api-docs/workout/v3/api-docs
+      - name: routine
+        url: /api-docs/routine/v3/api-docs
+      - name: calculator
+        url: /api-docs/calculator/v3/api-docs
 
 management:
   endpoints:
     web:
       exposure:
-        include: 'health,info'
-
-spring:
-  cloud:
-    gateway:
-      routes:
-        - id: security-service
-          uri: lb://SECURITY-SERVICE
-          predicates:
-            - Path=/auth/**
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
